@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\SheepdogStories.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F31BBDD1-B3E8-3BCC-9652-680E16935819}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\SheepdogStories.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\SheepdogStoriesEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <Filter Include="Config">
+      <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\SheepdogStories">
+      <UniqueIdentifier>{9E1B25F9-D77D-3BEC-94CA-A6C3F5033D65}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\SheepdogStories\SheepdogStories.Build.cs">
+      <Filter>Source\SheepdogStories</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\SheepdogStories\SheepdogStories.cpp">
+      <Filter>Source\SheepdogStories</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\SheepdogStories\SheepdogStories.h">
+      <Filter>Source\SheepdogStories</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

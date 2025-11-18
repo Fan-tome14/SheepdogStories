@@ -1,0 +1,8 @@
+{
+	"SourceFiles": [
+		"C:\\Documents\\Ecole\\BUT3\\S5\\UnrealL\\SheepdogStories\\Code\\SheepdogStories\\Source\\SheepdogStories\\SheepdogStories.Build.cs",
+		"C:\\Documents\\Ecole\\BUT3\\S5\\UnrealL\\SheepdogStories\\Code\\SheepdogStories\\Source\\SheepdogStories.Target.cs",
+		"C:\\Documents\\Ecole\\BUT3\\S5\\UnrealL\\SheepdogStories\\Code\\SheepdogStories\\Source\\SheepdogStoriesEditor.Target.cs"
+	],
+	"EngineVersion": "5.6.1"
+}

@@ -1,0 +1,14 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\documents\\ecole\\but3\\s5\\unreall\\sheepdogstories\\code\\sheepdogstories\\source\\sheepdogstories\\sheepdogstories.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\documents\\ecole\\but3\\s5\\unreall\\sheepdogstories\\code\\sheepdogstories\\intermediate\\build\\win64\\x64\\sheepdogstorieseditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "c:\\documents\\ecole\\but3\\s5\\unreall\\sheepdogstories\\code\\sheepdogstories\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\sheepdogstories\\definitions.sheepdogstories.h",
+            "c:\\documents\\ecole\\but3\\s5\\unreall\\sheepdogstories\\code\\sheepdogstories\\source\\sheepdogstories\\sheepdogstories.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

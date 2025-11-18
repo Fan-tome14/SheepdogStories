@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "SheepdogStories",
+			"Path": "..\\Source\\SheepdogStories.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "SheepdogStoriesEditor",
+			"Path": "..\\Source\\SheepdogStoriesEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
