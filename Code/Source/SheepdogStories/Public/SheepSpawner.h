@@ -27,7 +27,7 @@ public:
 	TSubclassOf<class APawnSheep> SheepClass;
 
 	UPROPERTY(EditAnywhere)
-	int NumberOfSheep = 10;
+	int NumberOfSheep = 30;
 
 	UPROPERTY(EditAnywhere)
 	int SpawnRadius = 500;

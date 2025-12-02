@@ -49,18 +49,30 @@ public:
 	
 	// Flocking weights
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
-	float m_fWeightAlignment;
+	float m_fWeightAlignment = 1.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
-	float m_fWeightCohesion;
+	float m_fWeightCohesion = 0.5f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
-	float m_fWeightSeparation;
+	float m_fWeightSeparation = 2.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
+	float SeparationRadius = 100.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
+	float AlignmentRadius = 500.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
+	float CohesionRadius = 500.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flocking");
+	float SteeringStrength = 200.f;
 
 	// Flocking behaviors
 	FVector Flocking();
-	FVector Alignment();
-	FVector Cohesion();
-	FVector Separation();
+	FVector Alignment(TArray<AActor*> LocalFlock);
+	FVector Cohesion(TArray<AActor*> LocalFlock);
+	FVector Separation(TArray<AActor*> LocalFlock);
 
 };
