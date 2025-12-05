@@ -361,26 +361,26 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
             {
                 DesiredDirection = FMath::Lerp(SheepState->PreviousDirection, DesiredDirection, 1.0f - DirectionSmoothness);
             }
-            
+
             SheepState->MovementDirection = DesiredDirection.GetSafeNormal();
             SheepState->PreviousDirection = SheepState->MovementDirection;
         }
 
         // === DÉTECTION DE BLOCAGE ===
-        
+
         bool bIsBlocked = false;
-        
+
         if (SheepState->CurrentSpeed > MinMovementSpeed)
         {
             // Calculer distance parcourue depuis la dernière frame
             float DistanceMoved = FVector::Dist(SheepLocation, SheepState->PreviousLocation);
             float ExpectedDistance = SheepState->CurrentSpeed * DeltaTime;
-            
+
             // Si le mouton veut bouger mais ne bouge presque pas = coincé
             if (DistanceMoved < ExpectedDistance * 0.3f)
             {
                 SheepState->BlockedTimer += DeltaTime;
-                
+
                 if (SheepState->BlockedTimer > 0.5f)  // Bloqué depuis 0.5 secondes
                 {
                     bIsBlocked = true;
@@ -391,7 +391,7 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
                 SheepState->BlockedTimer = 0.f;  // Réinitialiser si bouge bien
             }
         }
-        
+
         // Sauvegarder position pour prochaine frame
         SheepState->PreviousLocation = SheepLocation;
 
@@ -400,13 +400,63 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
         if (SheepState->CurrentSpeed > 0.f && !SheepState->MovementDirection.IsNearlyZero())
         {
             FVector MovementVector = SheepState->MovementDirection * SheepState->CurrentSpeed * DeltaTime;
-            
+
+            // === DÉTECTION D'OBSTACLES DEVANT ===
+            FHitResult ObstacleHit;
+            FVector LookAheadStart = SheepLocation;
+            FVector LookAheadEnd = SheepLocation + (SheepState->MovementDirection * ObstacleDetectionDistance);
+
+            FCollisionQueryParams ObstacleQueryParams;
+            ObstacleQueryParams.AddIgnoredActor(this);
+
+            // SphereTrace pour détecter les obstacles (murs, boxes, etc.)
+            bool bHitObstacle = GetWorld()->SweepSingleByChannel(
+                ObstacleHit,
+                LookAheadStart,
+                LookAheadEnd,
+                FQuat::Identity,
+                ECC_WorldStatic, // Détecter les objets statiques
+                FCollisionShape::MakeSphere(ObstacleDetectionRadius),
+                ObstacleQueryParams
+            );
+
+            // Vérifier si l'obstacle touché a le tag configuré (par défaut "branche")
+            bool bShouldAvoidObstacle = false;
+            if (bHitObstacle && ObstacleHit.GetActor())
+            {
+                bShouldAvoidObstacle = ObstacleHit.GetActor()->ActorHasTag(ObstacleTagToAvoid);
+            }
+
+            if (bShouldAvoidObstacle)
+            {
+                // OBSTACLE DÉTECTÉ : Calculer direction de contournement
+                FVector ObstacleNormal = ObstacleHit.Normal;
+                ObstacleNormal.Z = 0.f; // Garder sur le plan horizontal
+
+                // Choisir de contourner par la gauche ou la droite selon l'angle
+                FVector CrossProduct = FVector::CrossProduct(SheepState->MovementDirection, ObstacleNormal);
+                float TurnDirection = CrossProduct.Z > 0.f ? 1.f : -1.f;
+
+                // Créer une nouvelle direction : mélange entre la normale de l'obstacle et un virage
+                FVector RightVector = FVector::CrossProduct(SheepState->MovementDirection, FVector::UpVector);
+                FVector AvoidanceDirection = (ObstacleNormal + (RightVector * TurnDirection)).GetSafeNormal();
+
+                // Appliquer la direction d'évitement
+                SheepState->MovementDirection = FMath::Lerp(
+                    SheepState->MovementDirection,
+                    AvoidanceDirection,
+                    ObstacleAvoidanceStrength
+                ).GetSafeNormal();
+
+                MovementVector = SheepState->MovementDirection * SheepState->CurrentSpeed * DeltaTime;
+            }
+
             // Si bloqué, augmenter la force de mouvement pour "forcer le passage"
             if (bIsBlocked)
             {
                 // Boost de vitesse + direction aléatoire légère pour se débloquer
                 MovementVector *= BlockedEscapeMultiplier;
-                
+
                 // Ajouter une petite composante aléatoire pour sortir du blocage
                 FVector RandomJitter = FVector(
                     FMath::FRandRange(-50.f, 50.f),
@@ -415,7 +465,7 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
                 );
                 MovementVector += RandomJitter * DeltaTime;
             }
-            
+
             FVector NewLocation = SheepLocation + MovementVector;
 
             // LineTrace pour suivre le terrain
@@ -442,16 +492,42 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
             // Ignorer la composante Z pour rester sur le plan horizontal
             FVector DirectionFlat = SheepState->MovementDirection;
             DirectionFlat.Z = 0.f;
-            
-            if (!DirectionFlat.IsNearlyZero())
+
+            // Ne tourner que si le mouton se déplace vraiment (évite le spinning quand indécis)
+            if (!DirectionFlat.IsNearlyZero() && SheepState->CurrentSpeed > MinMovementSpeed)
             {
-                FRotator NewRotation = DirectionFlat.Rotation();
+                FRotator TargetRotation = DirectionFlat.Rotation();
+                FRotator CurrentRotation = Transform.GetRotation().Rotator();
+
                 // CRITIQUE : Forcer Pitch et Roll à 0 pour que le mouton reste DROIT
-                NewRotation.Pitch = 0.f;
-                NewRotation.Roll = 0.f;
+                TargetRotation.Pitch = 0.f;
+                TargetRotation.Roll = 0.f;
+                CurrentRotation.Pitch = 0.f;
+                CurrentRotation.Roll = 0.f;
+
                 // Appliquer l'offset de rotation pour compenser l'orientation du mesh
-                NewRotation.Yaw += MeshRotationOffset;
-                Transform.SetRotation(NewRotation.Quaternion());
+                TargetRotation.Yaw += MeshRotationOffset;
+
+                // LISSER la rotation pour éviter les changements brusques (spinning)
+                // Calculer la différence d'angle la plus courte
+                float YawDifference = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, TargetRotation.Yaw);
+
+                // Si la différence est très grande (>90°), réduire la vitesse de rotation
+                float RotationSpeed = FMath::Abs(YawDifference) > 90.f ? SharpTurnRotationSpeed : NormalRotationSpeed;
+
+                // Interpoler vers la rotation cible
+                FRotator SmoothedRotation = CurrentRotation;
+                SmoothedRotation.Yaw += YawDifference * RotationSpeed;
+
+                Transform.SetRotation(SmoothedRotation.Quaternion());
+            }
+            else
+            {
+                // Mouton immobile ou vitesse trop faible : garder la rotation actuelle
+                FRotator CurrentRotation = Transform.GetRotation().Rotator();
+                CurrentRotation.Pitch = 0.f;  // Pas de basculement avant/arrière
+                CurrentRotation.Roll = 0.f;   // Pas de basculement gauche/droite
+                Transform.SetRotation(CurrentRotation.Quaternion());
             }
         }
         else
@@ -489,7 +565,7 @@ void AMassSheepManager::UpdateVisualization()
             // Créer le transform avec la taille UNIQUE de ce mouton
             FTransform InstanceTransform = TransformFrag->GetTransform();
             InstanceTransform.SetScale3D(FVector(SheepState->Scale));
-            
+
             SheepInstances->UpdateInstanceTransform(i, InstanceTransform, true, true, true);
         }
     }

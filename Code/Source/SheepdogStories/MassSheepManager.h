@@ -76,7 +76,7 @@ public:
     float MeshRotationOffset = -90.f;
 
     // === VARIÉTÉ DES MOUTONS ===
-    
+
     // Activer la variété de taille
     UPROPERTY(EditAnywhere, Category = "Visualization | Variety")
     bool bEnableSizeVariety = true;
@@ -90,7 +90,7 @@ public:
     float MaxScale = 1.4f;
 
     // === ANTI-BLOCAGE ===
-    
+
     // Vitesse minimale considérée comme "mouvement" (détection blocage)
     UPROPERTY(EditAnywhere, Category = "Sheep AI | Anti-Blocking")
     float MinMovementSpeed = 10.f;
@@ -102,6 +102,34 @@ public:
     // Lissage de la direction (0 = pas de lissage, 1 = très lisse)
     UPROPERTY(EditAnywhere, Category = "Sheep AI | Anti-Blocking")
     float DirectionSmoothness = 0.3f;
+
+    // === ROTATION ===
+
+    // Vitesse de rotation normale (0-1, plus élevé = rotation plus rapide)
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Rotation")
+    float NormalRotationSpeed = 0.15f;
+
+    // Vitesse de rotation quand grand virage >90° (0-1, plus bas = plus smooth)
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Rotation")
+    float SharpTurnRotationSpeed = 0.05f;
+
+    // === DÉTECTION D'OBSTACLES ===
+
+    // Tag requis sur les obstacles pour que les moutons les contournent (ex: "branche")
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Obstacle Avoidance")
+    FName ObstacleTagToAvoid = FName("branche");
+
+    // Distance de détection d'obstacles devant le mouton (en cm)
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Obstacle Avoidance")
+    float ObstacleDetectionDistance = 150.f;
+
+    // Rayon de détection pour les obstacles (en cm)
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Obstacle Avoidance")
+    float ObstacleDetectionRadius = 50.f;
+
+    // Force du virage pour éviter les obstacles (0-1, plus élevé = virage plus serré)
+    UPROPERTY(EditAnywhere, Category = "Sheep AI | Obstacle Avoidance")
+    float ObstacleAvoidanceStrength = 0.7f;
 
 protected:
     virtual void BeginPlay() override;
