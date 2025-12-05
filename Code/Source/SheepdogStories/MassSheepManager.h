@@ -131,6 +131,40 @@ public:
     UPROPERTY(EditAnywhere, Category = "Sheep AI | Obstacle Avoidance")
     float ObstacleAvoidanceStrength = 0.7f;
 
+    // === ZONE DE SÉCURITÉ ===
+
+    // Activer le système de zone de sécurité
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone")
+    bool bEnableSafeZone = true;
+
+    // Référence à l'acteur de la zone (box trigger blueprint)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone")
+    TObjectPtr<AActor> SafeZoneActor;
+
+    // Distance du bord où la force de confinement commence (en cm)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone")
+    float SafeZoneBorderMargin = 100.f;
+
+    // Force de poussée vers le centre quand près du bord (multiplicateur)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone")
+    float SafeZoneConfinementStrength = 3.0f;
+
+    // Multiplicateur de séparation dans la zone (plus élevé = plus dispersés)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone")
+    float SafeZoneSeparationMultiplier = 3.0f;
+
+    // Afficher le compteur dans la console
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone | Debug")
+    bool bShowDebugLog = true;
+
+    // Intervalle d'affichage périodique en secondes (0 = seulement quand ça change)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Safe Zone | Debug")
+    float DebugLogInterval = 5.0f;
+
+    // Nombre de moutons actuellement dans la zone (LECTURE SEULE)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Safe Zone")
+    int32 SheepInSafeZoneCount = 0;
+
 protected:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
@@ -139,7 +173,16 @@ private:
     void SpawnAllSheep();
     void UpdateSheepAI(float DeltaTime);
     void UpdateVisualization();
+    void CheckSheepInSafeZone();  // Vérifier quels moutons sont dans la zone
 
     TArray<FMassEntityHandle> SheepEntities;
     UMassEntitySubsystem* MassEntitySubsystem;
+
+    // Cache pour les bounds de la zone
+    FBox SafeZoneBounds;
+    bool bSafeZoneBoundsValid = false;
+
+    // Debug : dernier comptage pour détecter les changements
+    int32 LastSheepInSafeZoneCount = 0;
+    float DebugLogTimer = 0.f;
 };

@@ -5,6 +5,7 @@
 #include "MassArchetypeTypes.h"
 #include "SheepFragments.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/ShapeComponent.h"
 #include "NavigationSystem.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
@@ -70,8 +71,15 @@ void AMassSheepManager::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    CheckSheepInSafeZone();  // Vérifier les moutons dans la zone EN PREMIER
     UpdateSheepAI(DeltaTime);
     UpdateVisualization();
+
+    // Incrémenter le timer pour le debug périodique
+    if (bShowDebugLog && DebugLogInterval > 0.f)
+    {
+        DebugLogTimer += DeltaTime;
+    }
 }
 
 void AMassSheepManager::SpawnAllSheep()
@@ -298,7 +306,82 @@ void AMassSheepManager::UpdateSheepAI(float DeltaTime)
         float DesiredSpeed = 0.f;
         ESheepState NewState = SheepState->CurrentState;
 
-        if (DistanceToDog < PanicDistance)
+        // SI LE MOUTON EST DANS LA ZONE DE SÉCURITÉ : Ignorer le chien complètement!
+        if (SheepState->bIsInSafeZone)
+        {
+            NewState = ESheepState::InSafeZone;
+            SheepState->TimeInSafeZone += DeltaTime;
+
+            // === FORCE VERS LE CENTRE : Actif UNIQUEMENT près des bords pour entrer/rester dans la zone ===
+            FVector ToCenterForce = FVector::ZeroVector;
+
+            if (bSafeZoneBoundsValid)
+            {
+                FVector ZoneCenter = SafeZoneBounds.GetCenter();
+                FVector ZoneExtent = SafeZoneBounds.GetExtent();
+                FVector ToCenter = ZoneCenter - SheepLocation;
+
+                // Calculer la distance aux bords sur chaque axe
+                float DistToEdgeX = ZoneExtent.X - FMath::Abs(SheepLocation.X - ZoneCenter.X);
+                float DistToEdgeY = ZoneExtent.Y - FMath::Abs(SheepLocation.Y - ZoneCenter.Y);
+
+                // SEULEMENT si proche du bord - pas d'attraction au centre sinon!
+                if (DistToEdgeX < SafeZoneBorderMargin)
+                {
+                    float PushStrength = (1.0f - (DistToEdgeX / SafeZoneBorderMargin)) * SafeZoneConfinementStrength;
+                    ToCenterForce.X = FMath::Sign(ToCenter.X) * PushStrength;
+                }
+
+                if (DistToEdgeY < SafeZoneBorderMargin)
+                {
+                    float PushStrength = (1.0f - (DistToEdgeY / SafeZoneBorderMargin)) * SafeZoneConfinementStrength;
+                    ToCenterForce.Y = FMath::Sign(ToCenter.Y) * PushStrength;
+                }
+
+                // Si TRÈS proche de l'entrée (juste entré), pousser un peu vers l'intérieur
+                float MinDistToEdge = FMath::Min(DistToEdgeX, DistToEdgeY);
+                if (MinDistToEdge < SafeZoneBorderMargin * 0.5f && SheepState->TimeInSafeZone < 2.0f)
+                {
+                    // Pousser vers l'intérieur pendant les 2 premières secondes
+                    ToCenterForce += ToCenter.GetSafeNormal() * 1.5f;
+                }
+            }
+
+            // Comportement naturel dans la zone : Dispersion libre comme dans un enclos
+            if (SheepState->StateTimer <= 0.f)
+            {
+                SheepState->StateTimer = FMath::FRandRange(3.f, 7.f);
+
+                // 70% de chance de marcher, 30% de brouter sur place
+                if (FMath::RandRange(0.f, 1.f) > 0.3f)
+                {
+                    // Marcher tranquillement dans différentes directions
+                    DesiredSpeed = WalkSpeed * 0.5f;  // Vitesse modérée
+
+                    // Direction TRÈS aléatoire pour se disperser + forte séparation
+                    FVector RandomDir = FMath::VRand();
+                    RandomDir.Z = 0.f;
+                    // Priorité à la direction aléatoire et à la séparation, pas à la cohésion
+                    DesiredDirection = RandomDir.GetSafeNormal() * 2.0f + SeparationForce * SafeZoneSeparationMultiplier + ToCenterForce;
+                }
+                else
+                {
+                    // Brouter tranquillement (presque immobile)
+                    DesiredSpeed = ToCenterForce.SizeSquared() > 1.0f ? WalkSpeed * 0.3f : GrazingSpeed * 0.2f;
+                    // Seulement séparation et force de confinement si nécessaire
+                    DesiredDirection = SeparationForce * (SafeZoneSeparationMultiplier * 0.7f) + ToCenterForce;
+                }
+            }
+            else
+            {
+                // Continuer le comportement actuel avec dispersion naturelle
+                DesiredSpeed = SheepState->CurrentSpeed;
+                // Moins de persistance de direction, plus de réactivité à la séparation
+                DesiredDirection = SheepState->MovementDirection * 0.5f + SeparationForce * SafeZoneSeparationMultiplier + ToCenterForce;
+            }
+        }
+        // SI HORS DE LA ZONE : Comportement normal (réagir au chien)
+        else if (DistanceToDog < PanicDistance)
         {
             // PANIQUE : Fuir le chien
             NewState = ESheepState::Running;
@@ -571,4 +654,120 @@ void AMassSheepManager::UpdateVisualization()
     }
 
     SheepInstances->MarkRenderStateDirty();
+}
+
+void AMassSheepManager::CheckSheepInSafeZone()
+{
+    // Si le système est désactivé ou pas de zone assignée
+    if (!bEnableSafeZone || !SafeZoneActor || !MassEntitySubsystem || SheepEntities.Num() == 0)
+    {
+        SheepInSafeZoneCount = 0;
+        return;
+    }
+
+    // Calculer ou récupérer les bounds de la zone
+    if (!bSafeZoneBoundsValid)
+    {
+        // Chercher un composant de collision sur l'acteur de la zone
+        TArray<UShapeComponent*> ShapeComponents;
+        SafeZoneActor->GetComponents<UShapeComponent>(ShapeComponents);
+
+        if (ShapeComponents.Num() > 0)
+        {
+            // Utiliser le premier composant trouvé (Box, Sphere, Capsule, etc.)
+            SafeZoneBounds = ShapeComponents[0]->Bounds.GetBox();
+            bSafeZoneBoundsValid = true;
+        }
+        else
+        {
+            // Pas de composant de collision trouvé
+            UE_LOG(LogTemp, Warning, TEXT("MassSheepManager: SafeZoneActor n'a pas de composant de collision!"));
+            return;
+        }
+    }
+
+    FMassEntityManager& EntityManager = MassEntitySubsystem->GetMutableEntityManager();
+    int32 SheepCount = 0;
+
+    // Vérifier chaque mouton
+    for (const FMassEntityHandle& SheepEntity : SheepEntities)
+    {
+        if (!EntityManager.IsEntityValid(SheepEntity))
+            continue;
+
+        FTransformFragment* TransformFrag = EntityManager.GetFragmentDataPtr<FTransformFragment>(SheepEntity);
+        FSheepStateFragment* SheepState = EntityManager.GetFragmentDataPtr<FSheepStateFragment>(SheepEntity);
+
+        if (TransformFrag && SheepState)
+        {
+            FVector SheepLocation = TransformFrag->GetTransform().GetLocation();
+
+            // Vérifier si le mouton est ENTIÈREMENT dans la zone
+            bool bWasInZone = SheepState->bIsInSafeZone;
+            bool bIsNowInZone = SafeZoneBounds.IsInside(SheepLocation);
+
+            if (bIsNowInZone)
+            {
+                SheepCount++;
+
+                // Le mouton vient d'entrer dans la zone
+                if (!bWasInZone)
+                {
+                    SheepState->bIsInSafeZone = true;
+                    SheepState->TimeInSafeZone = 0.f;
+                    UE_LOG(LogTemp, Log, TEXT("Mouton entré dans la zone de sécurité! Total: %d"), SheepCount);
+                }
+            }
+            else
+            {
+                // Le mouton est sorti de la zone
+                if (bWasInZone)
+                {
+                    SheepState->bIsInSafeZone = false;
+                    SheepState->TimeInSafeZone = 0.f;
+                    UE_LOG(LogTemp, Log, TEXT("Mouton sorti de la zone de sécurité!"));
+                }
+            }
+        }
+    }
+
+    SheepInSafeZoneCount = SheepCount;
+
+    // === DEBUG CONSOLE : Afficher le ratio moutons dans la zone / total ===
+    if (bShowDebugLog)
+    {
+        int32 TotalSheep = SheepEntities.Num();
+        bool bShouldLog = false;
+
+        // Log quand le compteur change
+        if (SheepInSafeZoneCount != LastSheepInSafeZoneCount)
+        {
+            bShouldLog = true;
+            LastSheepInSafeZoneCount = SheepInSafeZoneCount;
+        }
+
+        // Log périodique si activé
+        if (DebugLogInterval > 0.f && DebugLogTimer >= DebugLogInterval)
+        {
+            bShouldLog = true;
+            DebugLogTimer = 0.f;
+        }
+
+        if (bShouldLog)
+        {
+            float Percentage = TotalSheep > 0 ? (float)SheepInSafeZoneCount / TotalSheep * 100.f : 0.f;
+
+            if (SheepInSafeZoneCount == TotalSheep)
+            {
+                // Tous les moutons sont dans la zone!
+                UE_LOG(LogTemp, Display, TEXT("✅ TOUS LES MOUTONS SONT DANS LA ZONE! %d/%d (100%%)"),
+                    SheepInSafeZoneCount, TotalSheep);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("🐑 Moutons dans la zone: %d/%d (%.1f%%)"),
+                    SheepInSafeZoneCount, TotalSheep, Percentage);
+            }
+        }
+    }
 }

@@ -11,7 +11,8 @@ enum class ESheepState : uint8
     Idle,
     Grazing,      // Brouter tranquillement
     Walking,      // Marcher avec le troupeau
-    Running       // Fuir le chien
+    Running,      // Fuir le chien
+    InSafeZone    // Dans la zone de sécurité (ignore le chien)
 };
 
 // Fragment contenant l'état et les données du mouton
@@ -65,4 +66,14 @@ struct SHEEPDOGSTORIES_API FSheepStateFragment : public FMassFragment
     // Direction précédente pour lisser le mouvement
     UPROPERTY()
     FVector PreviousDirection = FVector::ZeroVector;
+
+    // === ZONE DE SÉCURITÉ ===
+    
+    // Est-ce que le mouton est dans la zone de sécurité?
+    UPROPERTY()
+    bool bIsInSafeZone = false;
+
+    // Temps passé dans la zone de sécurité
+    UPROPERTY()
+    float TimeInSafeZone = 0.f;
 };
