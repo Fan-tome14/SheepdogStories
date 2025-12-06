@@ -8,8 +8,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d3f5e139-b78a-4f4e-b141-fe73d7c8045f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Content/Blueprint/Bp_DOGCharactere.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/Bp_DOGCharactere.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.SheepdogStories.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SheepdogStories.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/BP_SheepFlocking.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/BP_SheepFlocking.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Map/LevelFlocking.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Map/LevelFlocking.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -132,7 +134,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1764816009656</updated>
-      <workItem from="1764816011148" duration="16775000" />
+      <workItem from="1764816011148" duration="19903000" />
     </task>
     <servers />
   </component>

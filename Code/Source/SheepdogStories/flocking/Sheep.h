@@ -44,7 +44,7 @@ public:
 	
 	static constexpr float SEPARATION_RADIUS = 200.0f; // Rayon pour détecter les voisins trop proches
 	static constexpr float SEPARATION_WEIGHT = 5.0f;  // Poids de l'influence de la séparation
-	static constexpr float MAX_SPEED = 300.0f;
+	static constexpr float MAX_SPEED = 400.0f;
 
 	static constexpr float STOP_THRESHOLD_SQUARED = 0.05f * 0.05f;
 
