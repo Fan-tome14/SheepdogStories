@@ -736,7 +736,7 @@ void AMassSheepManager::CheckSheepInSafeZone()
     // === DEBUG CONSOLE : Afficher le ratio moutons dans la zone / total ===
     if (bShowDebugLog)
     {
-        int32 TotalSheep = SheepEntities.Num();
+        TotalSheep = SheepEntities.Num();
         bool bShouldLog = false;
 
         // Log quand le compteur change
@@ -762,6 +762,7 @@ void AMassSheepManager::CheckSheepInSafeZone()
                 // Tous les moutons sont dans la zone!
                 UE_LOG(LogTemp, Display, TEXT("✅ TOUS LES MOUTONS SONT DANS LA ZONE! %d/%d (100%%)"),
                     SheepInSafeZoneCount, TotalSheep);
+                Finished=true;
             }
             else
             {

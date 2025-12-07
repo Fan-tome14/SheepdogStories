@@ -21,6 +21,12 @@ class SHEEPDOGSTORIES_API AMassSheepManager : public AActor
 public:
     AMassSheepManager();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="end")
+    bool Finished;
+
+    UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="sheep")
+    int32 TotalSheep;
+    
     // Nombre de moutons à spawner
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
     int32 NumberOfSheep = 50;
