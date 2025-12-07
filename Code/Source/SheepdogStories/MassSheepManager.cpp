@@ -38,6 +38,8 @@ AMassSheepManager::AMassSheepManager()
     SheepInstances->BodyInstance.bLockXTranslation = false;
     SheepInstances->BodyInstance.bLockYTranslation = false;
     SheepInstances->BodyInstance.bLockZTranslation = true;  // Verrouiller hauteur
+
+    bAreSheepSpawned = false;
 }
 
 void AMassSheepManager::BeginPlay()
@@ -102,7 +104,7 @@ void AMassSheepManager::SpawnAllSheep()
     EntityManager.BatchCreateEntities(Archetype, NumberOfSheep, SheepEntities);
 
     UE_LOG(LogTemp, Log, TEXT("MassSheepManager: Spawned %d sheep entities"), SheepEntities.Num());
-
+    
     // Spawner en cercle autour du manager pour former un troupeau compact
     float AngleStep = 360.f / NumberOfSheep;
     float CurrentRadius = 100.f;
@@ -181,6 +183,7 @@ void AMassSheepManager::SpawnAllSheep()
     }
 
     UE_LOG(LogTemp, Log, TEXT("MassSheepManager: Successfully initialized %d sheep in flock formation"), SheepEntities.Num());
+    bAreSheepSpawned = true;
 }
 
 void AMassSheepManager::UpdateSheepAI(float DeltaTime)
@@ -736,7 +739,7 @@ void AMassSheepManager::CheckSheepInSafeZone()
     // === DEBUG CONSOLE : Afficher le ratio moutons dans la zone / total ===
     if (bShowDebugLog)
     {
-        TotalSheep = SheepEntities.Num();
+        int32 TotalSheep = SheepEntities.Num();
         bool bShouldLog = false;
 
         // Log quand le compteur change

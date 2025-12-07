@@ -23,9 +23,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="end")
     bool Finished;
-
-    UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="sheep")
-    int32 TotalSheep;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sheep Manager")
+    bool bAreSheepSpawned = false;
     
     // Nombre de moutons à spawner
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawning")
