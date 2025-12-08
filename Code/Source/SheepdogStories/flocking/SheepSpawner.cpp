@@ -1,51 +1,77 @@
+// SheepSpawner.cpp
+
 #include "SheepSpawner.h"
 #include "Sheep.h"
 #include "Components/BoxComponent.h"
-#include "Kismet/KismetMathLibrary.h" 
+#include "Kismet/KismetMathLibrary.h"
+#include "Engine/World.h"
 
 // Sets default values
 ASheepSpawner::ASheepSpawner()
 {
-    PrimaryActorTick.bCanEverTick = false; 
+    PrimaryActorTick.bCanEverTick = false;
 
     SpawnVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("SpawnVolume"));
     SetRootComponent(SpawnVolume);
-    
-    SpawnVolume->SetBoxExtent(FVector(1000.0f, 1000.0f, 10.0f));
+
+    SpawnVolume->SetBoxExtent(FVector(1000.f, 1000.f, 10.f));
 }
 
 void ASheepSpawner::BeginPlay()
 {
     Super::BeginPlay();
-
     SpawnSheep();
+}
+
+/* -------------------------------------------------------
+      Vérifie si un endroit est libre avant de spawn
+------------------------------------------------------- */
+bool ASheepSpawner::IsSpawnLocationFree(const FVector& Location, float Radius) const
+{
+    FCollisionShape Sphere = FCollisionShape::MakeSphere(Radius);
+
+    // On cherche des acteurs de type Pawn (les moutons)
+    bool bHit = GetWorld()->OverlapAnyTestByObjectType(
+        Location,
+        FQuat::Identity,
+        FCollisionObjectQueryParams(ECC_Pawn),
+        Sphere
+    );
+
+    return !bHit; // true si libre
 }
 
 void ASheepSpawner::SpawnSheep()
 {
     if (!SheepClass)
     {
-        UE_LOG(LogTemp, Error, TEXT("SheepSpawner: Aucune classe de mouton définie !"));
+        UE_LOG(LogTemp, Error, TEXT("SheepSpawner : aucune classe de mouton assignée !"));
         return;
     }
 
-    if (!SpawnVolume) return;
+    FVector Origin = SpawnVolume->GetComponentLocation();
+    FVector Extent = SpawnVolume->GetScaledBoxExtent();
 
     for (int32 i = 0; i < NumberOfSheepToSpawn; i++)
     {
-        FVector Origin = SpawnVolume->GetComponentLocation();
-        FVector BoxExtent = SpawnVolume->GetScaledBoxExtent();
+        FVector SpawnLocation;
+        int32 Tries = 0;
 
-        FVector RandomPoint = UKismetMathLibrary::RandomPointInBoundingBox(Origin, BoxExtent);
+        // On cherche un emplacement libre (max 20 essais)
+        do
+        {
+            SpawnLocation = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+            SpawnLocation.Z = 10.f;
 
-        FRotator Rotation = FRotator::ZeroRotator;
-        Rotation.Yaw = FMath::RandRange(0.0f, 360.0f); 
+            Tries++;
+        }
+        while (!IsSpawnLocationFree(SpawnLocation, 80.f) && Tries < 20);
 
-        // 3. Spawner l'acteur
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = this;
-        SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+        // Gestion du spawn
+        FActorSpawnParameters Params;
+        Params.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-        GetWorld()->SpawnActor<ASheep>(SheepClass, RandomPoint, Rotation, SpawnParams);
+        GetWorld()->SpawnActor<ASheep>(SheepClass, SpawnLocation, FRotator::ZeroRotator, Params);
     }
 }

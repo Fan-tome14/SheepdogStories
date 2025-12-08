@@ -13,16 +13,25 @@ ASheep::ASheep()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//Box de collision
+	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	SetRootComponent(CapsuleCollision);
+	CapsuleCollision->InitCapsuleSize(50.f, 80.f);
+	CapsuleCollision->SetCollisionProfileName(TEXT("Pawn"));
+	
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
-	SetRootComponent(CollisionBox);
+	CollisionBox->SetupAttachment(CapsuleCollision);
 	CollisionBox->SetBoxExtent(FVector(50.0f, 50.0f, 50.0f));
 
-	//Profil de collision pour l'overlap
-	CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBox->SetCollisionObjectType(ECC_WorldDynamic);
+	CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+	CollisionBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	
-	//Static Mesh 
-	/*SheepMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SheepMesh"));
-	SheepMesh->SetupAttachment(CollisionBox);*/
+	//Profil de collision pour l'overlap
+	//CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+	
+	SheepMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SheepMesh"));
+	SheepMesh->SetupAttachment(CollisionBox);
 }
 
 FVector ASheep::CalculateSeparationForce(const TArray<ASheep*>& Neighbors, float SeparationRadius) const
@@ -178,15 +187,12 @@ void ASheep::Tick(float DeltaTime)
 	}
 
 	//2. Calculer les forces
-
-	
 	
 	FVector TotalForce = FVector::ZeroVector;
 
 	// A. Répulsion du Chien 
 	FVector DogRepulsionForce = CalculateDogRepulsionForce(DogLocation, DOG_REPULSION_RADIUS);
 	TotalForce += DogRepulsionForce * DOG_FEAR_WEIGHT;
-	
 
 	//Calcul de la séparation
 	FVector SeparationForce = CalculateSeparationForce(Neighbors, SEPARATION_RADIUS);
@@ -200,38 +206,25 @@ void ASheep::Tick(float DeltaTime)
 	FVector AlignmentForce = CalculateAlignmentForce(Neighbors);
 	TotalForce += AlignmentForce * ALIGNMENT_WEIGHT;
 
-	
-	
-
 	// on s'assure que la forece totale ne dépasse pas une magnitude raisonnable
 	if (!TotalForce.IsNearlyZero())
 	{
-		//on normalize la force et on l'applique sur la vitesse maximale
+		//on normalise la force et on l'applique sur la vitesse maximale
 		FVector DesiredVelocity = TotalForce.GetSafeNormal() * MAX_SPEED;
 
-		DesiredVelocity.Z += GRAVITY_Z * DeltaTime;
-
+		DesiredVelocity.Z += 0.0f;
+		
 		//Mouvement simple
 		FVector NewLocation = GetActorLocation() + DesiredVelocity * DeltaTime;
 
-		if (NewLocation.Z < 50.0f) // 50.0f est la moitié de la Box Extent
-		{
-			NewLocation.Z = 10.0f;
-		}
+		NewLocation.Z = GetActorLocation().Z;
 		
 		SetActorLocation(NewLocation, true);
 
 		//Rotation : faire regarder le mouton dans la direction de son mouvement
 		FRotator NewRotation = DesiredVelocity.Rotation();
+		NewRotation.Pitch = 0.0f;
 		SetActorRotation(NewRotation);
 	}
-
-	
-}
-
-// Called to bind functionality to input
-void ASheep::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 

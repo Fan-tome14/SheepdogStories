@@ -9,10 +9,16 @@
   <component name="ChangeListManager">
     <list default="true" id="d3f5e139-b78a-4f4e-b141-fe73d7c8045f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.SheepdogStories.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SheepdogStories.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_EnclosFlocking.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_EnclosFlocking.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_Counter.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_EnclosV2.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_EnclosV2.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_SheepFlocking.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprint/BP_Flocking/BP_SheepFlocking.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Fab/sheep/Materials/sheep_material_0.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Fab/sheep/Materials/sheep_material_0.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Map/LevelFlocking.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Map/LevelFlocking.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/UI/map.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/UI/map.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SheepdogStories/flocking/Sheep.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SheepdogStories/flocking/SheepSpawner.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SheepdogStories/flocking/SheepSpawner.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/SheepdogStories/flocking/SheepSpawner.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/SheepdogStories/flocking/SheepSpawner.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,7 +64,7 @@
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Uproject.SheepdogStories.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;polish__halim&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -155,6 +161,9 @@
       <workItem from="1765064366803" duration="3930000" />
       <workItem from="1765094006613" duration="3596000" />
       <workItem from="1765133982935" duration="9246000" />
+      <workItem from="1765203239518" duration="398000" />
+      <workItem from="1765203741979" duration="406000" />
+      <workItem from="1765204211872" duration="13434000" />
     </task>
     <servers />
   </component>
